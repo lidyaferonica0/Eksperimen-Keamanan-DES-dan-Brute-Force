@@ -48,9 +48,12 @@ async function bruteForce() {
   const logEl = document.getElementById('log');
   logEl.textContent = 'Memulai brute force...\n';
 
+  const startTime = performance.now();
+
   for (let k = 0; k <= 255; k++) {
     const keyHex = getKeyHexFromInt(k);
     const key = CryptoJS.enc.Hex.parse(keyHex);
+    let decryptedText = '';
 
     try {
       const decrypted = CryptoJS.DES.decrypt(globalCipherBase64, key, {
@@ -58,24 +61,23 @@ async function bruteForce() {
         padding: CryptoJS.pad.Pkcs7,
       });
 
-      const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
-
-      if (decryptedText === globalPlain) {
-        logEl.textContent += `Mencoba kunci ${k}: ${decryptedText}\n`;
-        logEl.textContent += `\n✅ Kunci ditemukan: ${k}`;
-        break;
-      } else {
-        logEl.textContent += `Mencoba kunci ${k}: <hasil tidak cocok>\n`;
-      }
-    } catch {
-      logEl.textContent += `Mencoba kunci ${k}: error\n`;
+      decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+    } catch (e) {
+      decryptedText = '';
     }
 
-    await new Promise(r => setTimeout(r, 5));
-  }
-}
+    if (decryptedText === globalPlain) {
+      logEl.textContent += `Mencoba kunci ${k}: ${decryptedText}\n`;
+      logEl.textContent += `\n✅ Kunci ditemukan: ${k}`;
+      break;
+    } else {
+      logEl.textContent += `Mencoba kunci ${k}: <hasil tidak cocok>\n`;
+    }
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btnEncrypt').addEventListener('click', encrypt);
-  document.getElementById('btnBruteForce').addEventListener('click', bruteForce);
-});
+    await new Promise(r => setTimeout(r, 5)); 
+  }
+
+  const endTime = performance.now();
+  const duration = (endTime - startTime).toFixed(2);
+  logEl.textContent += `\n🕒 Waktu eksekusi: ${duration} ms`;
+}
